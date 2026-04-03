@@ -1,0 +1,102 @@
+======================================================================
+  MediTrack — Model Comparison Report
+  Generated: 2026-04-03 16:00:35
+  Dataset: medication_adherence_multi_disease_5_months.csv
+  Total samples: 600  (Train: 480, Test: 120)
+  Class distribution:  Taken=468  Missed=132
+  Miss rate: 22.0%
+  Features used (22): day_of_week, is_weekend, month, hour, is_morning, is_evening, days_since_start, total_doses_so_far, doses_per_day, mood_enc, activity_enc, gender_enc, med_enc, disease_enc, age, disease_adherence_avg, recent_adherence, long_adherence, consec_missed, streak_taken, miss_rate_same_weekday, miss_rate_same_hour
+======================================================================
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         RESULTS (Ranked by Test AUC)                       │
+├────────────────────────────────────────────────────────────────────────────┤
+│ Model                    CV AUC Test AUC       F1   Recall      Acc │
+├────────────────────────────────────────────────────────────────────────────┤
+│🥇LSTM (PyTorch)         N/A      0.6233   0.2857   0.2308   0.7345 │
+│🥈Gradient Boosting      0.4964   0.6089   0.3667   0.3793   0.6833 │
+│🥉XGBoost                0.4766   0.5745   0.3200   0.4138   0.5750 │
+│  Logistic Regression    0.5099   0.5699   0.3774   0.6897   0.4500 │
+│  Random Forest          0.4688   0.5669   0.3210   0.4483   0.5417 │
+└────────────────────────────────────────────────────────────────────────────┘
+
+★ BEST MODEL: LSTM (PyTorch)
+  AUC-ROC: 0.6233
+  F1 Score: 0.2857
+  Training Time: 9.591s
+
+── LSTM (PyTorch) ────────────────────────────────────
+  Accuracy:    0.7345
+  Precision:   0.375
+  Recall:      0.2308
+  F1 Score:    0.2857
+  CV AUC (Rolling):  N/A
+  Test AUC (Latest): 0.6233
+  Train Time:  9.591s
+  Confusion Matrix (Holdout):
+    Predicted:    Taken   Missed
+    Actual Taken:     77      10
+    Actual Missed:    20       6
+
+── Gradient Boosting ─────────────────────────────────
+  Accuracy:    0.6833
+  Precision:   0.3548
+  Recall:      0.3793
+  F1 Score:    0.3667
+  CV AUC (Rolling):  0.4964
+  Test AUC (Latest): 0.6089
+  Train Time:  4.556s
+  Confusion Matrix (Holdout):
+    Predicted:    Taken   Missed
+    Actual Taken:     71      20
+    Actual Missed:    18      11
+
+── XGBoost ───────────────────────────────────────────
+  Accuracy:    0.575
+  Precision:   0.2609
+  Recall:      0.4138
+  F1 Score:    0.32
+  CV AUC (Rolling):  0.4766
+  Test AUC (Latest): 0.5745
+  Train Time:  1.62s
+  Confusion Matrix (Holdout):
+    Predicted:    Taken   Missed
+    Actual Taken:     57      34
+    Actual Missed:    17      12
+
+── Logistic Regression ───────────────────────────────
+  Accuracy:    0.45
+  Precision:   0.2597
+  Recall:      0.6897
+  F1 Score:    0.3774
+  CV AUC (Rolling):  0.5099
+  Test AUC (Latest): 0.5699
+  Train Time:  0.112s
+  Confusion Matrix (Holdout):
+    Predicted:    Taken   Missed
+    Actual Taken:     34      57
+    Actual Missed:     9      20
+
+── Random Forest ─────────────────────────────────────
+  Accuracy:    0.5417
+  Precision:   0.25
+  Recall:      0.4483
+  F1 Score:    0.321
+  CV AUC (Rolling):  0.4688
+  Test AUC (Latest): 0.5669
+  Train Time:  3.269s
+  Confusion Matrix (Holdout):
+    Predicted:    Taken   Missed
+    Actual Taken:     52      39
+    Actual Missed:    16      13
+
+======================================================================
+  RECOMMENDATION
+======================================================================
+
+  Based on AUC-ROC (the gold standard for imbalanced classification),
+  the recommended model for production use is: ** LSTM (PyTorch) **
+
+  This model achieves 0.6233 AUC-ROC on held-out test data,
+  capturing the best trade-off between sensitivity and specificity
+  for predicting medication non-compliance.

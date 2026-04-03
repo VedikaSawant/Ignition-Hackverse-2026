@@ -276,6 +276,9 @@ class ConsultResponse(BaseModel):
     text_response: str
     audio_b64: Optional[str] = None
     intent: Optional[str] = None
+    logged_medicine: Optional[str] = None
+    action_taken: Optional[str] = None
+    new_medicine_data: Optional[dict] = None
 
 class ConsultLogOut(BaseModel):
     id: int
@@ -286,3 +289,19 @@ class ConsultLogOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ─── Prescription Schemas ────────────────────────────────────
+class PrescriptionMedicine(BaseModel):
+    name: str
+    dosage: str
+    frequency: str = "once daily"
+    duration: str = "30 days"
+    timing: str = "after food"
+
+
+class PrescriptionScanOut(BaseModel):
+    patient_name: Optional[str] = None
+    doctor_name: Optional[str] = None
+    medicines: List[PrescriptionMedicine] = []
+    special_instructions: Optional[str] = None

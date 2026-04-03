@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import os
+import sys
+
+# Crucial fix for Windows terminals crashing when printing 🚀 and 🔍
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 load_dotenv()
 
@@ -11,7 +16,7 @@ from scheduler import start_scheduler
 from predictions import train_ml_model
 from database import SessionLocal
 
-from routers import auth, medicines, doses, analytics, predictions, alerts, health, achievements, caregiver, doctor, consult, intelligence
+from routers import auth, medicines, doses, analytics, predictions, alerts, health, achievements, caregiver, doctor, consult, intelligence, prescription
 
 
 @asynccontextmanager
@@ -69,6 +74,7 @@ app.include_router(caregiver.router)
 app.include_router(doctor.router)
 app.include_router(consult.router)
 app.include_router(intelligence.router)
+app.include_router(prescription.router)
 
 
 @app.get("/")

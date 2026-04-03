@@ -1,15 +1,17 @@
+import { Calendar } from 'lucide-react';
+
 export default function AdherenceHeatmap({ data = [] }) {
   if (!data.length) return null;
 
   const getColor = (pct) => {
-    if (pct < 0) return '#F1F5F9'; // no data / future
-    if (pct === 100) return '#15803D';
-    if (pct >= 80) return '#22C55E';
-    if (pct >= 60) return '#86EFAC';
-    if (pct >= 40) return '#FDE047';
-    if (pct >= 20) return '#FBBF24';
-    if (pct > 0) return '#F87171';
-    return '#EF4444';
+    if (pct < 0) return '#F8FAFC'; // slate-50 (no data)
+    if (pct === 100) return '#059669'; // emerald-600
+    if (pct >= 80) return '#10B981'; // emerald-500
+    if (pct >= 60) return '#6EE7B7'; // emerald-300
+    if (pct >= 40) return '#FCD34D'; // amber-300
+    if (pct >= 20) return '#F59E0B'; // amber-500
+    if (pct > 0) return '#EF4444'; // red-500
+    return '#DC2626'; // red-600
   };
 
   const weeks = [];
@@ -27,55 +29,70 @@ export default function AdherenceHeatmap({ data = [] }) {
     }
   });
 
-  const days = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
+  const daysLabels = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
 
   return (
-    <div className="glass-card p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">📅 Adherence Heatmap</h3>
-
-      {/* Month labels */}
-      <div className="flex mb-1 ml-8">
-        {months.map((m, i) => (
-          <div key={i} className="text-[10px] text-gray-400 font-medium"
-            style={{ position: 'relative', left: `${m.col * 16}px` }}>
-            {m.month}
+    <div className="medico-card p-10 bg-white shadow-xl border border-slate-50">
+      <div className="flex items-center gap-4 mb-10">
+          <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center border border-slate-100 shadow-sm">
+              <Calendar size={24} />
           </div>
-        ))}
+          <div>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Behavioral Adherence Timeline</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Yearly protocol distribution matrix</p>
+          </div>
       </div>
 
-      <div className="flex gap-0.5">
-        {/* Day labels */}
-        <div className="flex flex-col gap-0.5 mr-1">
-          {days.map((d, i) => (
-            <div key={i} className="w-6 h-3.5 text-[9px] text-gray-400 flex items-center justify-end pr-1">{d}</div>
+      <div className="relative overflow-x-auto pb-4 scrollbar-hide">
+        {/* Month labels */}
+        <div className="flex mb-3 ml-10">
+          {months.map((m, i) => (
+            <div key={i} className="text-[9px] text-slate-400 font-bold uppercase tracking-widest absolute"
+              style={{ left: `${m.col * 22}px` }}>
+              {m.month}
+            </div>
           ))}
         </div>
 
-        {/* Grid */}
-        <div className="flex gap-0.5 overflow-x-auto">
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-0.5">
-              {week.map((day, di) => (
-                <div
-                  key={di}
-                  className="tooltip w-3.5 h-3.5 rounded-sm cursor-pointer transition-transform hover:scale-150"
-                  style={{ backgroundColor: getColor(day.adherence_percent) }}
-                  data-tip={`${day.date}: ${day.adherence_percent >= 0 ? Math.round(day.adherence_percent) + '%' : 'No data'}`}
-                  title={`${day.date}: ${day.adherence_percent >= 0 ? Math.round(day.adherence_percent) + '%' : 'No data'}`}
-                />
-              ))}
-            </div>
-          ))}
+        <div className="flex gap-1 pt-6">
+          {/* Day labels */}
+          <div className="flex flex-col gap-1 mr-2">
+            {daysLabels.map((d, i) => (
+              <div key={i} className="w-8 h-4.5 text-[9px] font-bold text-slate-300 flex items-center justify-end pr-2 uppercase tracking-tighter">{d}</div>
+            ))}
+          </div>
+
+          {/* Grid */}
+          <div className="flex gap-1">
+            {weeks.map((week, wi) => (
+              <div key={wi} className="flex flex-col gap-1">
+                {week.map((day, di) => (
+                  <div
+                    key={di}
+                    className="w-4.5 h-4.5 rounded-[4px] cursor-pointer transition-all duration-300 hover:scale-125 hover:shadow-md border border-white/10"
+                    style={{ backgroundColor: getColor(day.adherence_percent) }}
+                    title={`${day.date}: ${day.adherence_percent >= 0 ? Math.round(day.adherence_percent) + '%' : 'No telemetry'}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-2 mt-3 text-[10px] text-gray-500">
-        <span>Less</span>
-        {['#EF4444', '#FBBF24', '#FDE047', '#86EFAC', '#22C55E', '#15803D'].map((c) => (
-          <div key={c} className="w-3 h-3 rounded-sm" style={{ backgroundColor: c }} />
-        ))}
-        <span>More</span>
+      <div className="flex items-center justify-between mt-10 pt-8 border-t border-slate-50">
+        <div className="flex items-center gap-6">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Intensity Index</p>
+            <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-slate-300 uppercase">Non-Adherent</span>
+                {['#EF4444', '#F59E0B', '#FCD34D', '#6EE7B7', '#10B981', '#059669'].map((c) => (
+                <div key={c} className="w-3.5 h-3.5 rounded-[3px] shadow-sm" style={{ backgroundColor: c }} />
+                ))}
+                <span className="text-[9px] font-bold text-slate-300 uppercase">Optimal</span>
+            </div>
+        </div>
+        <p className="text-[10px] font-bold text-slate-300 italic tracking-widest uppercase">Clinical Telemetry Active</p>
       </div>
     </div>
   );

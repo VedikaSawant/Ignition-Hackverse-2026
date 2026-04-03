@@ -7,3 +7,4 @@ export const getHeatmap = (weeks = 12) => API.get(`/analytics/heatmap?weeks=${we
 export const getStreak = () => API.get('/analytics/streak');
 export const getReport = () => API.get('/analytics/report');
 export const getMissedPatterns = () => API.get('/analytics/missed-patterns');
+export const sendReportToDoctor = () => API.post('/analytics/send-report-to-doctor');

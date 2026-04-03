@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { TrendingUp, Activity } from 'lucide-react';
 
 export default function HealthMetricChart({ data = [], metrics = ['blood_pressure_systolic'], title = 'Health Trends' }) {
   const METRIC_CONFIG = {
@@ -17,35 +18,80 @@ export default function HealthMetricChart({ data = [], metrics = ['blood_pressur
   }));
 
   return (
-    <div className="glass-card p-5">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">📈 {title}</h3>
+    <div className="medico-card p-8 bg-white shadow-xl shadow-slate-900/5">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary border border-primary/10">
+                <Activity size={20} />
+            </div>
+            <div>
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none mb-1">{title}</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Time-Series Biometric Matrix</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1 bg-success/10 text-success rounded-lg text-[9px] font-black uppercase tracking-widest">
+            <TrendingUp size={12} />
+            Live Processing
+        </div>
+      </div>
+
       <ResponsiveContainer width="100%" height={260}>
-        <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-          <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94A3B8' }} />
-          <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} />
+        <LineChart data={chartData} margin={{ top: 5, right: 0, bottom: 5, left: -20 }}>
+          <CartesianGrid strokeDasharray="6 6" stroke="#F1F5F9" vertical={false} />
+          <XAxis 
+            dataKey="date" 
+            tick={{ fontSize: 10, fill: '#94A3B8', fontWeight: 700 }} 
+            axisLine={false}
+            tickLine={false}
+            dy={10}
+          />
+          <YAxis 
+            tick={{ fontSize: 10, fill: '#94A3B8', fontWeight: 700 }} 
+            axisLine={false}
+            tickLine={false}
+          />
           <Tooltip
             contentStyle={{
-              background: 'white',
-              border: '1px solid #E2E8F0',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-              fontSize: '12px',
+              background: '#0F172A',
+              border: 'none',
+              borderRadius: '16px',
+              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)',
+              fontSize: '11px',
+              fontFamily: 'Inter',
+              fontWeight: '700',
+              color: 'white',
+              padding: '12px 16px',
             }}
+            itemStyle={{ color: '#F1F5F9' }}
+            cursor={{ stroke: '#E2E8F0', strokeWidth: 2 }}
           />
-          <Legend wrapperStyle={{ fontSize: '12px' }} />
+          <Legend 
+            verticalAlign="top" 
+            align="right" 
+            iconType="circle"
+            wrapperStyle={{ 
+                fontSize: '10px', 
+                fontWeight: '800', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.1em',
+                paddingBottom: '20px',
+                color: '#64748B'
+            }} 
+          />
           {metrics.map((m) => {
-            const cfg = METRIC_CONFIG[m] || { color: '#2563EB', label: m };
+            const cfg = METRIC_CONFIG[m] || { color: '#0052FF', label: m };
             return (
               <Line
                 key={m}
                 type="monotone"
                 dataKey={m}
                 stroke={cfg.color}
-                strokeWidth={2}
-                dot={{ r: 3 }}
-                activeDot={{ r: 5 }}
+                strokeWidth={3}
+                dot={{ r: 4, strokeWidth: 2, fill: '#FFFFFF', stroke: cfg.color }}
+                activeDot={{ r: 6, strokeWidth: 2, fill: cfg.color, stroke: '#FFFFFF' }}
                 name={cfg.label}
+                animationDuration={1500}
+                animationEasing="ease-in-out"
               />
             );
           })}

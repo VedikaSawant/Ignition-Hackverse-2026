@@ -10,6 +10,8 @@ from predictions import (
     generate_weekly_summary,
     generate_predictions_for_user,
     train_ml_model,
+    analyze_behavioral_patterns,
+    generate_behavioral_narrative,
 )
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -20,6 +22,17 @@ router = APIRouter(prefix="/api/predictions", tags=["predictions"])
 @router.get("/risk-score")
 def risk_score(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return compute_risk_score(db, current_user.id)
+
+
+@router.get("/behavioral-suite")
+def behavioral_suite(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Fetch the full suite of detected behavioral patterns and the clinical narrative."""
+    patterns = analyze_behavioral_patterns(db, current_user.id)
+    narrative = generate_behavioral_narrative(db, current_user.id)
+    return {
+        "patterns": patterns,
+        "narrative": narrative
+    }
 
 
 @router.get("/next-miss")

@@ -13,3 +13,7 @@ apscheduler
 python-dotenv
 gTTS
 xgboost
+reportlab
+pytesseract
+opencv-python
+pillow

@@ -1,22 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
-import useAlerts from '../hooks/useAlerts';
+import { 
+  LayoutDashboard, 
+  Pill, 
+  BarChart3, 
+  Brain, 
+  Activity, 
+  Home, 
+  Stethoscope,
+  Bell,
+  LogOut,
+  ChevronDown
+} from 'lucide-react';
 
 const NAV_ITEMS = {
   patient: [
-    { path: '/dashboard', label: 'Overview', icon: '💎' },
-    { path: '/medicines', label: 'Medicine', icon: '💊' },
-    { path: '/intelligence', label: 'Intelligence', icon: '📊' },
-    { path: '/insights', label: 'AI Health', icon: '🧠' },
-    { path: '/health', label: 'Vitals', icon: '❤️' },
+    { path: '/dashboard', label: 'Overview', icon: <LayoutDashboard size={18} /> },
+    { path: '/medicines', label: 'Medicine', icon: <Pill size={18} /> },
+    { path: '/intelligence', label: 'Intelligence', icon: <BarChart3 size={18} /> },
+    { path: '/insights', label: 'Clinical AI', icon: <Brain size={18} /> },
+    { path: '/health', label: 'Vitals', icon: <Activity size={18} /> },
   ],
   caregiver: [
-    { path: '/caregiver/dashboard', label: 'Dashboard', icon: '🏠' },
+    { path: '/caregiver/dashboard', label: 'Dashboard', icon: <Home size={18} /> },
   ],
   doctor: [
-    { path: '/doctor/dashboard', label: 'Clinic', icon: '🏥' },
+    { path: '/doctor/dashboard', label: 'Clinic', icon: <Stethoscope size={18} /> },
   ],
 };
 
@@ -47,16 +54,16 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between">
           {/* Brand Logo */}
-          <Link to="/dashboard" className="flex items-center gap-2 group no-underline">
+          <Link to="/dashboard" className="flex items-center gap-4 group no-underline">
             <motion.div 
-              whileHover={{ rotate: 15 }}
-              className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-blue-200"
+              whileHover={{ scale: 1.05 }}
+              className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200 border border-slate-800"
             >
-              <span className="text-white text-xl font-bold">➕</span>
+              <Activity className="text-primary w-6 h-6" />
             </motion.div>
             <div className="flex flex-col">
-              <span className="text-2xl font-black text-text tracking-tighter leading-none">MediPlus</span>
-              <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] leading-none mt-1">Intelligence</span>
+              <span className="text-2xl font-bold text-slate-900 tracking-tighter leading-none">MediTrack</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] leading-none mt-1.5">Clinical Protocol</span>
             </div>
           </Link>
 
@@ -91,11 +98,11 @@ export default function Navbar() {
              {/* Notifications */}
              <button 
               onClick={() => navigate('/dashboard')}
-              className="relative w-11 h-11 flex items-center justify-center bg-white border border-gray-100 rounded-2xl hover:border-primary/30 hover:bg-primary-light transition-all group"
+              className="relative w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl hover:border-primary/30 hover:bg-slate-50 transition-all group"
              >
-                <span className="text-xl group-hover:scale-110 transition-transform">🔔</span>
+                <Bell size={20} className="text-slate-400 group-hover:text-primary transition-colors" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
                     {unreadCount}
                   </span>
                 )}
@@ -132,9 +139,9 @@ export default function Navbar() {
                          </div>
                          <button 
                           onClick={() => { logout(); navigate('/login'); }}
-                          className="w-full flex items-center gap-3 px-5 py-3.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
+                          className="w-full flex items-center gap-4 px-6 py-4 text-[13px] font-bold text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
                          >
-                            <span className="text-xl">🚪</span> Sign Out
+                            <LogOut size={18} /> Sign Out
                          </button>
                       </motion.div>
                     </>

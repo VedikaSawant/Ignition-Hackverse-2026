@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { getMe, demoLogin as demoLoginApi } from '../api/auth';
+import { getMe, login as loginApi, register as registerApi, demoLogin as demoLoginApi } from '../api/auth';
 
 const AuthContext = createContext(null);
 
@@ -39,11 +39,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loginSuccess = (data) => {
+    if (!data.access_token) {
+        console.error("Login failed: No access token received");
+        return;
+    }
     localStorage.setItem('meditrack_token', data.access_token);
     localStorage.setItem('meditrack_user', JSON.stringify(data.user));
     setToken(data.access_token);
     setUser(data.user);
     setLoading(false);
+  };
+
+  const login = async (email, password) => {
+    const res = await loginApi({ email, password });
+    loginSuccess(res.data);
+    return res.data;
+  };
+
+  const register = async (formData) => {
+    const res = await registerApi(formData);
+    loginSuccess(res.data);
+    return res.data;
   };
 
   const logout = () => {
@@ -65,7 +81,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, loginSuccess, logout, demoLogin }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, loginSuccess, logout, demoLogin }}>
       {children}
     </AuthContext.Provider>
   );

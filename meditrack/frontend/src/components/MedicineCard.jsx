@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Clock } from "lucide-react";
+import { Check, X, Clock, Pill, AlertCircle, Info, ChevronRight } from "lucide-react";
 
 const SKIP_REASONS = [
   { value: 'forgot', label: 'Forgot' },
@@ -29,7 +29,6 @@ export default function MedicineCard({ dose, onMarkTaken, onSkip }) {
       displayTime = `${displayHour}:${timeStr.split(':')[1] || '00'} ${period}`;
   }
 
-
   const handleTaken = async () => {
     setIsLoading(true);
     await onMarkTaken(dose);
@@ -46,94 +45,119 @@ export default function MedicineCard({ dose, onMarkTaken, onSkip }) {
   };
 
   return (
-    <motion.div layout className="mb-4">
+    <motion.div layout className="mb-6">
       <div
-        className={`pro-card p-5 flex items-center justify-between gap-4 transition-all duration-300 ${
-          isDone ? "opacity-50 scale-[0.99]" : "hover:scale-[1.005]"
-        } ${justTaken ? "ring-2 ring-success/30 bg-success/5" : ""}`}
+        className={`medico-card transition-all duration-300 ${
+          isDone ? "bg-slate-50/50" : "bg-white"
+        } ${justTaken ? "ring-2 ring-success/20" : ""}`}
       >
-        <div className="flex items-center gap-4">
-          <div
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold shrink-0 transition-all duration-300 ${
-              isTaken
-                ? "bg-success/15 text-success ring-2 ring-success/20"
-                : isSkipped
-                ? "bg-danger/15 text-danger ring-2 ring-danger/20"
-                : "bg-primary/10 text-primary"
-            }`}
-          >
-            {isTaken ? <Check className="w-5 h-5" strokeWidth={3} /> : isSkipped ? <X className="w-5 h-5" strokeWidth={3} /> : "💊"}
+        <div className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-10">
+          {/* Left: Info */}
+          <div className="flex items-center gap-8">
+            <div
+              className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                isTaken
+                  ? "bg-success/10 text-success"
+                  : isSkipped
+                  ? "bg-danger/10 text-danger"
+                  : "bg-primary/5 text-primary"
+              }`}
+            >
+              {isTaken ? <Check size={28} strokeWidth={2.5} /> : isSkipped ? <X size={28} strokeWidth={2.5} /> : <Pill size={28} />}
+            </div>
+            
+            <div className="space-y-1.5">
+              <h4 className={`text-xl font-bold tracking-tight ${isDone ? 'text-slate-400' : 'text-slate-900'}`}>
+                {dose.medicine_name}
+              </h4>
+              <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
+                  <span className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    {dose.dosage || dose.medicine_dosage}
+                  </span>
+                  <span className="w-1 h-1 rounded-full bg-slate-300" />
+                  <span className="truncate max-w-[200px]">{dose.instructions || 'Standard Protocol'}</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <h4 className="font-bold text-foreground text-sm tracking-tight">{dose.medicine_name}</h4>
-            <p className="text-xs text-muted-foreground mt-0.5 font-medium">{dose.dosage || dose.medicine_dosage}</p>
+
+          {/* Right: Actions/Status */}
+          <div className="flex items-center gap-6">
+            <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm ${isDone ? 'bg-slate-100 text-slate-400' : 'bg-slate-50 text-slate-600 border border-slate-100'}`}>
+              <Clock size={16} className={isDone ? 'text-slate-300' : 'text-primary'} />
+              <span>{displayTime}</span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {!isDone && !justTaken ? (
+                <>
+                  <button
+                    onClick={() => setShowSkipMenu(!showSkipMenu)}
+                    className="px-6 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all"
+                  >
+                    Skip
+                  </button>
+                  <button
+                    onClick={handleTaken}
+                    disabled={isLoading}
+                    className="btn-medico btn-medico-primary px-8 py-3.5 shadow-lg shadow-primary/10 min-w-[140px]"
+                  >
+                    {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : (
+                      <>Log Dose <ChevronRight size={16} /></>
+                    )}
+                  </button>
+                </>
+              ) : isTaken ? (
+                <div className="flex items-center gap-2.5 px-6 py-3 bg-green-50 text-green-600 rounded-xl font-bold text-sm animate-in fade-in zoom-in duration-300">
+                    <Check size={18} strokeWidth={3} />
+                    Verified Taken
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold text-sm">
+                    <AlertCircle size={18} strokeWidth={3} />
+                    Marked Skipped
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/70 px-3.5 py-2 rounded-xl">
-            <Clock className="w-3.5 h-3.5" />
-            <span className="font-semibold">{displayTime}</span>
-          </div>
-          {!isDone && !justTaken && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowSkipMenu(!showSkipMenu)}
-                className="bg-muted text-muted-foreground px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-border/80 transition-all duration-200"
-              >
-                Skip...
-              </button>
-              <button
-                onClick={handleTaken}
-                disabled={isLoading}
-                className="bg-success text-success-foreground px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-success/20 hover:scale-105 transition-all duration-200 disabled:opacity-70 flex items-center justify-center min-w-[70px]"
-              >
-                {isLoading ? <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : "Take"}
-              </button>
-            </div>
+        {/* Skip Menu Overlay/Drawer */}
+        <AnimatePresence>
+          {showSkipMenu && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden border-t border-slate-50"
+            >
+              <div className="p-8 bg-slate-50 flex flex-col gap-6">
+                 <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Dose Anomaly Attribution</p>
+                    <p className="text-sm font-medium text-slate-500">Why are you skipping this medication today?</p>
+                 </div>
+                 <div className="flex flex-wrap gap-3">
+                    {SKIP_REASONS.map((r) => (
+                      <button
+                        key={r.value}
+                        onClick={() => handleSkip(r.value)}
+                        disabled={isLoading}
+                        className="px-6 py-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary transition-all disabled:opacity-50"
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                    <button 
+                      onClick={() => setShowSkipMenu(false)}
+                      className="px-6 py-3 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                 </div>
+              </div>
+            </motion.div>
           )}
-          {isTaken && !justTaken && (
-            <span className="text-xs font-bold text-success bg-success/10 px-4 py-2 rounded-xl ring-1 ring-success/20">
-              ✓ Taken
-            </span>
-          )}
-          {isSkipped && (
-            <span className="text-xs font-bold text-danger bg-danger/10 px-4 py-2 rounded-xl ring-1 ring-danger/20">
-              Skipped
-            </span>
-          )}
-        </div>
+        </AnimatePresence>
       </div>
-
-      <AnimatePresence>
-        {showSkipMenu && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="mt-2 p-4 bg-muted/30 rounded-2xl border border-border/50 grid grid-cols-2 sm:grid-cols-5 gap-3">
-               {SKIP_REASONS.map((r) => (
-                 <button
-                   key={r.value}
-                   onClick={() => handleSkip(r.value)}
-                   disabled={isLoading}
-                   className="px-3 py-2.5 rounded-xl border border-border/60 bg-background text-[10px] font-bold text-foreground hover:border-primary hover:text-primary transition-all uppercase tracking-wide disabled:opacity-50"
-                 >
-                   {r.label}
-                 </button>
-               ))}
-               <button 
-                onClick={() => setShowSkipMenu(false)}
-                className="px-3 py-2.5 rounded-xl bg-muted/50 text-[10px] font-bold text-muted-foreground hover:bg-muted"
-               >
-                 CANCEL
-               </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

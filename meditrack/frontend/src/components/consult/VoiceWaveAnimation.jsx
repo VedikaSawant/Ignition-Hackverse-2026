@@ -4,18 +4,19 @@ export default function VoiceWaveAnimation({ isSpeaking }) {
   if (!isSpeaking) return null;
 
   return (
-    <div className="flex items-center justify-center gap-1 h-8">
-      {[...Array(5)].map((_, i) => (
+    <div className="flex items-center justify-center gap-[3px] h-8">
+      {[...Array(7)].map((_, i) => (
         <motion.div
           key={i}
-          className="w-1.5 bg-blue-500 rounded-full"
+          className="w-[3px] bg-primary rounded-full"
           animate={{
-            height: ['8px', '24px', '8px'],
+            height: ['6px', '22px', '6px'],
+            opacity: [0.5, 1, 0.5],
           }}
           transition={{
-            duration: 0.8,
+            duration: 0.7,
             repeat: Infinity,
-            delay: i * 0.1,
+            delay: i * 0.08,
             ease: "easeInOut"
           }}
         />

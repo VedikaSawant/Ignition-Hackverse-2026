@@ -5,6 +5,7 @@ from models import DoseLog, Medicine, User
 from auth import get_current_user
 from datetime import datetime, timedelta
 from collections import defaultdict
+from reports import process_and_send_patient_report
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -287,3 +288,24 @@ def missed_patterns(
         "total_missed": len(missed),
         "summary": f"Most missed: {most_missed_time} doses on {most_missed_day}s",
     }
+
+
+@router.post("/send-report-to-doctor")
+def trigger_send_report(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Manually trigger a weekly report send to the linked doctor.
+    """
+    if current_user.role != "patient":
+        raise HTTPException(status_code=403, detail="Only patients can trigger this report.")
+
+    if not current_user.linked_doctor_id:
+        raise HTTPException(status_code=400, detail="No doctor linked to this account.")
+
+    success = process_and_send_patient_report(db, current_user.id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send report. Please check email configuration.")
+
+    return {"status": "success", "message": "Report sent to your doctor successfully."}

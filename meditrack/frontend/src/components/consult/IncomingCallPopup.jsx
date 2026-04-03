@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { checkTrigger } from '../../api/consult';
+import { Phone, PhoneOff, Activity } from 'lucide-react';
 import doctorImg from '../../assets/doctor.png';
 
 export default function IncomingCallPopup({ onAccept }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if we should trigger the popup
     const checkCallTrigger = async () => {
       try {
         const res = await checkTrigger();
@@ -35,37 +35,41 @@ export default function IncomingCallPopup({ onAccept }) {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ y: 50, opacity: 0, scale: 0.9 }}
+          initial={{ y: 20, opacity: 0, scale: 0.95 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 50, opacity: 0, scale: 0.9 }}
-          className="fixed bottom-6 right-6 z-50 bg-white p-5 rounded-2xl shadow-2xl border border-gray-100 w-80 flex flex-col items-center text-center"
+          exit={{ y: 20, opacity: 0, scale: 0.95 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="fixed bottom-10 right-10 z-[300] bg-white p-10 rounded-[40px] shadow-2xl border border-slate-100 w-[380px] flex flex-col items-center text-center font-inter"
         >
-          {/* Ringing Avatar */}
-          <div className="relative mb-4">
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="absolute inset-0 bg-blue-400 rounded-full"
-            />
-            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-md">
-              <img src={doctorImg} alt="Dr. Aria" className="w-full h-full object-cover" />
+          {/* Ringing avatar */}
+          <div className="relative mb-8">
+            <div className="absolute -inset-4 bg-primary/5 rounded-full animate-pulse" />
+            <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl ring-2 ring-primary/10">
+              <img src={doctorImg} alt="Clinical Assistant" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg border-4 border-white">
+                <Activity size={18} />
             </div>
           </div>
 
-          <h4 className="font-bold text-gray-800 text-lg mb-1">Incoming Consultation</h4>
-          <p className="text-sm text-gray-500 mb-6 font-medium">Dr. Aria (AI Consultant)</p>
+          <div className="space-y-2 mb-10">
+            <h4 className="font-bold text-slate-900 text-xl tracking-tight">Incoming Protocol</h4>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Clinical Assistant Assistant</p>
+          </div>
 
-          <div className="flex w-full justify-between gap-3">
-            <button 
+          <div className="flex w-full justify-between gap-4">
+            <button
               onClick={handleDecline}
-              className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 rounded-xl transition-colors"
+              className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-400 font-bold py-4 rounded-2xl transition-all duration-300 text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 border border-slate-100"
             >
+              <PhoneOff size={16} />
               Decline
             </button>
-            <button 
+            <button
               onClick={handleAccept}
-              className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-green-500/30 transition-colors animate-pulse"
+              className="flex-1 bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl shadow-slate-200 hover:bg-primary transition-all duration-300 text-[11px] uppercase tracking-widest flex items-center justify-center gap-3"
             >
+              <Phone size={16} />
               Accept
             </button>
           </div>

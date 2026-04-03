@@ -11,6 +11,10 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
+import pandas as pd
+from sqlalchemy.orm import Session
+from models import User, Medicine, DoseLog, HealthMetric
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -215,3 +219,185 @@ def send_report_email(doctor_email, patient_name, risk_level, pdf_path):
     except Exception as e:
         print(f"Failed to send email to {doctor_email}: {e}")
         return False
+
+
+def send_patient_reminder_email(patient_email, patient_name, medicine_name, scheduled_time, miss_prob=0.2, behavioral_context=None):
+    """
+    Send a smart, Gemini-drafted reminder directly to the patient.
+    """
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_pass = os.getenv("SMTP_PASS")
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", 587))
+    
+    if not smtp_user or not smtp_pass or not patient_email:
+        return False
+
+    is_high_risk = miss_prob >= 0.45
+    prompt = f"""You are a caring personalized AI health assistant named Aria. 
+Draft a 2-sentence medication reminder email for {patient_name}.
+Medicine: {medicine_name} at {scheduled_time}.
+High Risk of Missing: {'Yes' if is_high_risk else 'No'}
+Behavioral Context: {behavioral_context if behavioral_context else 'None'}
+
+If high risk, be more encouraging and mention why (e.g. routine drift or weekend pattern).
+Plain text only. No subject line.
+
+Email Body:"""
+
+    content = f"Hi {patient_name}, it's time for your {medicine_name} at {scheduled_time}! Let's stay on track with your health today."
+    if os.environ.get("GEMINI_API_KEY"):
+        try:
+            model = genai.GenerativeModel("gemini-1.5-flash") 
+            resp = model.generate_content(prompt)
+            content = resp.text.strip()
+        except:
+            pass
+
+    msg = MIMEText(content)
+    msg['From'] = f"MediTrack Aria <{smtp_user}>"
+    msg['To'] = patient_email
+    msg['Subject'] = f"{'⚠️ HIGH PRIORITY: ' if is_high_risk else ''}Medication Reminder: {medicine_name}"
+    
+    try:
+        server = smtplib.SMTP(smtp_host, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Reminder email failed: {e}")
+        return False
+
+
+def get_patient_weekly_stats(db: Session, patient_id: int):
+    """
+    Step 1 & 2: Fetch data and calculate stats using pandas.
+    """
+    patient = db.query(User).filter(User.id == patient_id).first()
+    if not patient:
+        return None
+
+    today = datetime.utcnow().date()
+    start_date = (today - timedelta(days=6)).isoformat() # Last 7 days including today
+    
+    # Fetch logs
+    logs = db.query(DoseLog).filter(
+        DoseLog.user_id == patient_id,
+        DoseLog.scheduled_time >= start_date
+    ).all()
+
+    if not logs:
+        return {
+            "id": patient.id,
+            "name": patient.name,
+            "conditions": patient.conditions,
+            "total": 0,
+            "taken": 0,
+            "missed": 0,
+            "adherence_percent": 0,
+            "risk_level": "Low",
+            "med_breakdown": [],
+            "daily_trend": []
+        }
+
+    # Load into DataFrame
+    df = pd.DataFrame([{
+        "medicine_id": l.medicine_id,
+        "status": l.status,
+        "date": l.scheduled_time.split(' ')[0]
+    } for l in logs])
+
+    total = len(df)
+    taken = len(df[df['status'] == 'taken'])
+    missed = len(df[df['status'].isin(['missed', 'pending'])]) # In this context, past pending are missed
+    adherence = round((taken / total) * 100) if total > 0 else 0
+
+    # Risk level = if adherence ≥ 80% → Low, 50–79% → Moderate, below 50% → High
+    if adherence >= 80:
+        risk_level = "Low"
+    elif adherence >= 50:
+        risk_level = "Moderate"
+    else:
+        risk_level = "High"
+
+    # Med breakdown
+    med_breakdown = []
+    medicines = db.query(Medicine).filter(Medicine.user_id == patient_id, Medicine.is_active == True).all()
+    for med in medicines:
+        med_df = df[df['medicine_id'] == med.id]
+        m_total = len(med_df)
+        m_taken = len(med_df[med_df['status'] == 'taken'])
+        if m_total > 0:
+            med_breakdown.append({
+                "name": med.name,
+                "total": m_total,
+                "taken": m_taken,
+                "adherence": round((m_taken / m_total) * 100)
+            })
+
+    # Daily trend (last 7 days)
+    daily_trend = []
+    for i in range(6, -1, -1):
+        d_str = (today - timedelta(days=i)).isoformat()
+        day_df = df[df['date'] == d_str]
+        d_total = len(day_df)
+        d_taken = len(day_df[day_df['status'] == 'taken'])
+        daily_trend.append({
+            "date": d_str,
+            "adherence": round((d_taken / d_total) * 100) if d_total > 0 else 0
+        })
+
+    return {
+        "id": patient.id,
+        "name": patient.name,
+        "conditions": patient.conditions,
+        "total": total,
+        "taken": taken,
+        "missed": missed,
+        "adherence_percent": adherence,
+        "risk_level": risk_level,
+        "med_breakdown": med_breakdown,
+        "daily_trend": daily_trend
+    }
+
+def process_and_send_patient_report(db: Session, patient_id: int):
+    """
+    Unified flow: DB -> Stats -> LLM -> PDF -> Email
+    """
+    print(f"📊 Processing weekly report for patient ID: {patient_id}")
+    
+    # 1. Get stats
+    stats = get_patient_weekly_stats(db, patient_id)
+    if not stats:
+        print(f"⚠️ Could not find stats for patient {patient_id}")
+        return False
+
+    # 2. Generate AI summary
+    summary = generate_clinical_summary(stats)
+    
+    # 3. Create PDF
+    pdf_path = create_pdf_report(stats, summary)
+    
+    # 4. Find doctor email
+    patient = db.query(User).filter(User.id == patient_id).first()
+    if not patient or not patient.linked_doctor_id:
+        print(f"⚠️ Patient {patient_id} has no linked doctor.")
+        return False
+        
+    doctor = db.query(User).filter(User.id == patient.linked_doctor_id).first()
+    if not doctor or not doctor.email:
+        print(f"⚠️ Linked doctor for patient {patient_id} has no email.")
+        return False
+
+    # 5. Send email
+    success = send_report_email(doctor.email, stats['name'], stats['risk_level'], pdf_path)
+    
+    # Cleanup temp file
+    try:
+        os.remove(pdf_path)
+    except:
+        pass
+        
+    return success

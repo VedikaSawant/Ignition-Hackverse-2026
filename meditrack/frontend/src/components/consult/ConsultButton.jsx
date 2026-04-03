@@ -1,15 +1,18 @@
 import { motion } from 'framer-motion';
+import { Stethoscope } from 'lucide-react';
 
 export default function ConsultButton({ onClick }) {
   return (
     <motion.button
       onClick={onClick}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white px-5 py-2.5 rounded-full font-medium shadow-lg shadow-blue-500/30 transition-all border border-blue-400/20"
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      className="flex items-center gap-3 bg-slate-900 border border-slate-800 text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all duration-300 group"
     >
-      <span className="text-lg">🩺</span>
-      <span>Consult AI Doctor</span>
+      <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
+        <Stethoscope className="w-4 h-4 text-primary" />
+      </div>
+      <span className="tracking-widest uppercase text-[11px] font-bold">Clinical Consultation</span>
     </motion.button>
   );
 }
